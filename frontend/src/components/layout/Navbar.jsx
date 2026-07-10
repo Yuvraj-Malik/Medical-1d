@@ -21,7 +21,7 @@ export default function Navbar() {
             </svg>
           </span>
           <Link to="/" className="brand-name" onClick={() => setMenuOpen(false)}>
-            PancreaGuard
+            PancreaScan
           </Link>
         </div>
 
