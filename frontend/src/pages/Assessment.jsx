@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { predictPOPF } from '../services/api';
 
 export default function Assessment() {
   const navigate = useNavigate();
@@ -78,14 +79,30 @@ export default function Assessment() {
     });
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
     console.log("Submitting to API...", formData);
-    // Simulate API call delay
-    setTimeout(() => {
-      // Pass data to results page via state
-      navigate('/results', { state: { prediction: 0.89, riskLevel: 'High Risk', features: formData } });
-    }, 1000);
+    
+    try {
+      const result = await predictPOPF(formData);
+      navigate('/results', { 
+        state: { 
+          prediction: result.prediction, 
+          riskLevel: result.riskLevel, 
+          features: formData 
+        } 
+      });
+    } catch (err) {
+      console.error(err);
+      setError("Failed to connect to the prediction server. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -264,8 +281,10 @@ export default function Assessment() {
               </div>
             </section>
 
-            <button type="submit" className="submit-btn">
-              Analyze Risk Parameters
+            {error && <div className="error-message" style={{color: 'red', marginTop: '10px'}}>{error}</div>}
+            
+            <button type="submit" className="submit-btn" disabled={isSubmitting}>
+              {isSubmitting ? 'Analyzing...' : 'Analyze Risk Parameters'}
             </button>
           </form>
         </section>
